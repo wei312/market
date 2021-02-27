@@ -75,6 +75,7 @@ public class UserPermissionsController extends SuperController {
                         l -> l.like(Api::getApiServiceName, searchKey).or(e -> e.eq(
                                 Api::getApiCatalogueName, searchKey)));
             }
+            apiQueryWrapper.orderByDesc(true, Api::getCreateTime);
             apiIPage = apiMarketService
                     .selectPage(page, apiQueryWrapper);
             List<Api> apiList = apiIPage.getRecords();
@@ -188,6 +189,7 @@ public class UserPermissionsController extends SuperController {
                         l -> l.like(Api::getApiServiceName, searchKey).or(e -> e.eq(
                                 Api::getApiCatalogueName, searchKey)));
             }
+            apiQueryWrapper.orderByDesc(true, Api::getCreateTime);
             apiIPage = apiMarketService
                     .selectPage(page, apiQueryWrapper);
             List<Api> apiList = apiIPage.getRecords();

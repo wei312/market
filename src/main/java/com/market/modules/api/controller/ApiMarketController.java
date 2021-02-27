@@ -135,6 +135,7 @@ public class ApiMarketController extends SuperController {
             apiQueryWrapper.eq(StringUtils.isNotEmpty(searchKey), Api::getApiCatalogueName, searchKey).or(l -> l
                     .like(StringUtils.isNotEmpty(searchKey), Api::getApiServiceName, searchKey));
         }
+        apiQueryWrapper.orderByDesc(true, Api::getCreateTime);
 
         apiIPage = apiMarketService.selectPage(page, apiQueryWrapper);
         log.info("API服务列表 -> API IPage -{}", apiIPage.getTotal());
