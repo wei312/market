@@ -142,8 +142,6 @@ public class UserPermissionsController extends SuperController {
         userPermissions.setUsername(userPermissionsInsertParam.getUserName());
         userPermissions.setRemark(userPermissionsInsertParam.getRemark());
         userPermissions.setStatus("1");
-        userPermissions.setCreateTime(Tools.now());
-        userPermissions.setUpdateTime(Tools.now());
         boolean b = userPermissionsService.save(userPermissions);
         return ModelAndView.successData(b).toJson();
     }

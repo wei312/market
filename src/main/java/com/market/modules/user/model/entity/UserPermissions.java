@@ -1,11 +1,9 @@
 package com.market.modules.user.model.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.market.base.framework.model.entity.BaseModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -19,15 +17,8 @@ import lombok.NoArgsConstructor;
 @TableName("user_permissions")
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class UserPermissions implements Serializable {
-
-    /**
-     * 唯一ID
-     */
-    @TableId
-    @ApiModelProperty(value = "唯一ID")
-    private String id;
+@EqualsAndHashCode(callSuper = true)
+public class UserPermissions extends BaseModel {
 
     /**
      * API的ID
@@ -54,18 +45,4 @@ public class UserPermissions implements Serializable {
     @ApiModelProperty("审核描述")
     private String remark;
 
-    /**
-     * 创建时间
-     */
-    @TableField
-    @ApiModelProperty(value = "创建时间")
-    private String createTime;
-
-    /**
-     * 更新时间
-     */
-    @ApiModelProperty(value = "更新时间")
-    private String updateTime;
-
-    private static final long serialVersionUID = 1L;
 }

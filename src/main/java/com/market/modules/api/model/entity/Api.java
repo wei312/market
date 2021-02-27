@@ -1,8 +1,8 @@
 package com.market.modules.api.model.entity;
 
+import com.market.base.framework.model.entity.BaseModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -15,14 +15,8 @@ import lombok.NoArgsConstructor;
 @ApiModel(value = "com.market.modules.api.model.entity.ApiAPI信息表")
 @Data
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class Api implements Serializable {
-
-    /**
-     * 唯一ID
-     */
-    @ApiModelProperty(value = "唯一ID")
-    private String id;
+@EqualsAndHashCode(callSuper = true)
+public class Api extends BaseModel {
 
     /**
      * 请求URL
@@ -41,18 +35,6 @@ public class Api implements Serializable {
      */
     @ApiModelProperty(value = "请求方法")
     private String method;
-
-    /**
-     * 创建时间
-     */
-    @ApiModelProperty(value = "创建时间")
-    private String createTime;
-
-    /**
-     * 更新时间
-     */
-    @ApiModelProperty(value = "更新时间")
-    private String updateTime;
 
     /**
      * 启用(1)-停用(0)状态

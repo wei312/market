@@ -195,12 +195,9 @@ public class ApiMarketController extends SuperController {
         // 请求此API接口时, 会将状态为1的APICODE 设置到 API表中的 RUNCODE字段,做为请求时APICODE
         if (StringUtils.isNotEmpty(apiInsertParam.getCode())) {
             ApiCode apiCode = new ApiCode();
-            apiCode.setId(Tools.getUUID());
             apiCode.setApiCode(apiInsertParam.getCode());
             apiCode.setApiId(api.getId());
             apiCode.setStatus("1");
-            apiCode.setCreateTime(Tools.now());
-            apiCode.setUpdateTime(Tools.now());
             boolean apiCodeB = apiCodeService.save(apiCode);
         }
         return ModelAndView.success(200, "新增成功").toJson();
