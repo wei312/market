@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,11 +30,13 @@ public class BaseModel {
 
     @TableField(fill = FieldFill.INSERT)
     @ApiModelProperty(notes = "创建时间")
+    @JsonSerialize(using = ToStringSerializer.class)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private String createTime;
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     @ApiModelProperty(notes = "修改时间")
+    @JsonSerialize(using = ToStringSerializer.class)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private String updateTime;
 }

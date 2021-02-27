@@ -198,6 +198,8 @@ public class ApiMarketController extends SuperController {
             apiCode.setApiCode(apiInsertParam.getCode());
             apiCode.setApiId(api.getId());
             apiCode.setStatus("1");
+            apiCode.setCreateTime(Tools.now());
+            apiCode.setUpdateTime(Tools.now());
             boolean apiCodeB = apiCodeService.save(apiCode);
         }
         return ModelAndView.success(200, "新增成功").toJson();
