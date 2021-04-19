@@ -203,6 +203,16 @@ public class ApiMarketController extends SuperController {
             apiCode.setUpdateTime(Tools.now());
             boolean apiCodeB = apiCodeService.save(apiCode);
         }
+        if (CollectionUtils.isNotEmpty(apiInsertParam.getApiParams())) {
+            List<ApiParam> apiParams = apiInsertParam.getApiParams();
+            for (ApiParam apiParam : apiParams) {
+                apiParam.setApiId(api.getId());
+                apiParam.setId(Tools.getUUID());
+                apiParam.setCreateTime(Tools.now());
+                apiParam.setUpdateTime(Tools.now());
+                boolean apiParamB = apiParamService.save(apiParam);
+            }
+        }
         return ModelAndView.success(200, "新增成功").toJson();
     }
 
