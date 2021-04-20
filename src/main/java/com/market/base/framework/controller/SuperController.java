@@ -1,10 +1,10 @@
 package com.market.base.framework.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.market.base.framework.bean.ServerResponse;
 import com.market.base.framework.constant.PageCons;
 import com.market.base.framework.utils.Tools;
 import com.market.base.framework.utils.TypeUtils;
-import com.tencent.goff.bean.ServerResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;

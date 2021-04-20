@@ -33,6 +33,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class Tools {
 
 
+    public static void main(String[] args) {
+        System.out.println(Tools.getUUID());
+    }
+
     /**
      * 获取当前工程IP和端口拼成 HTTP地址
      *
