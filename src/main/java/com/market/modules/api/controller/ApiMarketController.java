@@ -116,10 +116,21 @@ public class ApiMarketController extends SuperController {
                 }
                 // 组装请求参数,封装到MAP中
                 Map<String, String> queryMap = Tools.getParameters(apiParamList);
-                // 调用ALI市场接口,返回结果进行解析,解析后封装
-                String responseString = Tools.sendHttpConnection(api, queryMap);
-                JSONArray jsonArray = Tools.parseJson(responseString);
-                return ModelAndView.successData(jsonArray).toJson();
+                try {
+                    // 根据源系统类型调用市场接口,返回结果进行解析,解析后封装
+                    String sourceType = api.getSourceType();
+                    String responseString = "";
+                    if ("aliyun".equalsIgnoreCase(sourceType)) {
+                        // 调用ALI市场接口
+                        responseString = Tools.sendHttpConnection(api, queryMap);
+                    }
+                    log.info("调用返回结果,  {}", responseString);
+                    JSONArray jsonArray = Tools.parseJson(responseString);
+                    return ModelAndView.successData(jsonArray).toJson();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return ModelAndView.successData(new Object()).toJson();
+                }
             }
         }
     }
@@ -162,7 +173,8 @@ public class ApiMarketController extends SuperController {
             // 循环设置API的URL地址,用于前端测试或展示
             apiDTOList.stream().forEach(apiDTO -> {
                 try {
-                    apiDTO.setUrl(Tools.assemblyParameterUrl(apiDTO.getApiParamList(), apiDTO.getApiService()));
+                    apiDTO.setUrl(Tools.assemblyParameterUrl(apiDTO.getApiParamList(), apiDTO.getApiService(),
+                            userName));
                 } catch (Exception e) {
                     apiDTO.setUrl("");
                     e.printStackTrace();
@@ -180,7 +192,7 @@ public class ApiMarketController extends SuperController {
     @ApiOperation("API新增")
     @PostMapping("insert")
     @Transactional
-    public String insertApi(@RequestBody ApiInsertParam apiInsertParam) {
+    public String insertApi(@RequestBody ApiInsertParam apiInsertParam) throws Exception {
         // 按API行业分类与服务名校验是否存在
         Api api = apiMarketService
                 .getOne(new QueryWrapper<Api>().lambda().eq(Api::getApiCatalogue, apiInsertParam.getApiCatalogue())
@@ -192,6 +204,7 @@ public class ApiMarketController extends SuperController {
         BeanUtils.copyProperties(apiInsertParam, api);
         api.setId(Tools.getUUID());
         api.setStatus("1");
+        api.setSourceType(Tools.parseSourceType(api.getSourceUrl()));
         boolean b = apiMarketService.save(api);
         // 新增API时 ,有个API CODE 需要插入到另一张表,与 API表进行关联(关联字段api_id)
         // 请求此API接口时, 会将状态为1的APICODE 设置到 API表中的 RUNCODE字段,做为请求时APICODE
@@ -229,7 +242,8 @@ public class ApiMarketController extends SuperController {
             boolean apiParamB = apiParamService
                     .remove(new QueryWrapper<ApiParam>().lambda().eq(ApiParam::getApiId, apiId));
             // 删除API CODE配置表
-            boolean apiCodeB = apiCodeService.remove(new QueryWrapper<ApiCode>().lambda().eq(ApiCode::getApiId, apiId));
+            boolean apiCodeB = apiCodeService
+                    .remove(new QueryWrapper<ApiCode>().lambda().eq(ApiCode::getApiId, apiId));
             // 删除用户权限表
             boolean userPB = userPermissionsService
                     .remove(new QueryWrapper<UserPermissions>().lambda().eq(UserPermissions::getApiId, apiId));

@@ -28,4 +28,11 @@ public class ApiDTO extends Api {
      */
     @ApiModelProperty("用户申请/权限状态")
     private String userStatus;
+
+    /**
+     * 用户申请/权限状态
+     */
+    @ApiModelProperty("用户名称")
+    private String userName;
+
 }

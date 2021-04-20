@@ -99,7 +99,8 @@ public class UserPermissionsController extends SuperController {
             apiUserPerDTOList.stream().forEach(apiUserPerDTO -> {
                 try {
                     apiUserPerDTO.setUrl(Tools
-                            .assemblyParameterUrl(apiUserPerDTO.getApiParamList(), apiUserPerDTO.getApiService()));
+                            .assemblyParameterUrl(apiUserPerDTO.getApiParamList(), apiUserPerDTO.getApiService(),
+                                    userName));
                 } catch (Exception e) {
                     apiUserPerDTO.setUrl("");
                     e.printStackTrace();
@@ -213,7 +214,8 @@ public class UserPermissionsController extends SuperController {
             apiUserPerDTOList.stream().forEach(apiUserPerDTO -> {
                 try {
                     apiUserPerDTO.setUrl(Tools
-                            .assemblyParameterUrl(apiUserPerDTO.getApiParamList(), apiUserPerDTO.getApiService()));
+                            .assemblyParameterUrl(apiUserPerDTO.getApiParamList(), apiUserPerDTO.getApiService(),
+                                    "admin"));
                 } catch (Exception e) {
                     apiUserPerDTO.setUrl("");
                     e.printStackTrace();

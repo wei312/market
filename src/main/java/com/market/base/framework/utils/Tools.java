@@ -187,7 +187,6 @@ public class Tools {
                     , api.getMethod(), headerMap, queryMap);
             HttpResponse response = HttpUtils.doGet(api.getHost(), api.getPath(), api.getMethod(), headerMap, queryMap);
             log.info("{}", response);
-            response.getStatusLine();
             return EntityUtils.toString(response.getEntity());
         } catch (Exception e) {
             log.error("调用接口失败 ,{}", e.getMessage());
@@ -290,6 +289,7 @@ public class Tools {
      */
     public static JSONArray parseJson(String json) {
         try {
+            log.info("返回结果 ,{}", json);
             JSONObject jsonObject = JSONObject.parseObject(json);
             JSONArray jsonArray = new JSONArray();
             // 匹配天气,交通车辆违章等接口
@@ -321,12 +321,14 @@ public class Tools {
                 jsonArray.add(jsonObject.getJSONObject("Result"));
                 return jsonArray;
             }
-            return new JSONArray();
+            jsonArray.add(jsonObject);
+            return jsonArray;
         } catch (Exception e) {
             log.error("解析接口失败 ,异常:{} ,参数:{}", e.getMessage(), json);
             return new JSONArray();
         }
     }
+
 
     /**
      * 拼接URL,加码转义
@@ -336,14 +338,35 @@ public class Tools {
      * @return
      * @throws Exception
      */
-    public static String assemblyParameterUrl(List<ApiParam> apiParamList, String apiService) throws Exception {
+    public static String assemblyParameterUrl(List<ApiParam> apiParamList, String apiService, String userName)
+            throws Exception {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(getUrl())
-                .append("/api").append("/").append(apiService).append("?userName=admin");
+                .append("/api").append("/").append(apiService).append("?userName=").append(userName);
         apiParamList.stream().forEach(apiParam -> {
             stringBuilder.append("&").append(apiParam.getKeyName()).append("=").append(apiParam.getExampleValue());
         });
         return stringBuilder.toString();
     }
+
+    /**
+     * 解析源系统类型
+     *
+     * @param url
+     * @return
+     * @throws Exception
+     */
+    public static String parseSourceType(String url) throws Exception {
+        String type = "aliyun";
+        if ("aliyun".contains(url)) {
+            type = "aliyun";
+        } else if ("tencent".contains(url)) {
+            type = "tencent";
+        } else if ("jisuapi".contains(url)) {
+            type = "jisuapi";
+        }
+        return type;
+    }
+
 
 }

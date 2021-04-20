@@ -25,11 +25,17 @@ public class Api extends BaseModel {
     private String url;
 
     /**
-     * 请求URL
+     * 源系统URL
      */
-    @ApiModelProperty(value = "源URL")
+    @ApiModelProperty(value = "源系统URL")
     private String sourceUrl;
-    
+
+    /**
+     * 源系统类型
+     */
+    @ApiModelProperty(value = "源系统类型")
+    private String sourceType;
+
     /**
      * API名称
      */
