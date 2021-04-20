@@ -191,6 +191,7 @@ public class ApiMarketController extends SuperController {
         api = new Api();
         BeanUtils.copyProperties(apiInsertParam, api);
         api.setId(Tools.getUUID());
+        api.setStatus("1");
         boolean b = apiMarketService.save(api);
         // 新增API时 ,有个API CODE 需要插入到另一张表,与 API表进行关联(关联字段api_id)
         // 请求此API接口时, 会将状态为1的APICODE 设置到 API表中的 RUNCODE字段,做为请求时APICODE
