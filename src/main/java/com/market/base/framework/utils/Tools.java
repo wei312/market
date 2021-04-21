@@ -16,7 +16,9 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.util.EntityUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -143,8 +145,9 @@ public class Tools {
                     break;
                 }
             }
-            log.info(" 参数校验异常 msg :{},状态:{}", msg, flag);
+
             if (flag) {
+                log.info(" 参数校验异常 msg :{},状态:{}", msg, flag);
                 return msg;
             } else {
                 return null;
@@ -185,9 +188,24 @@ public class Tools {
             headerMap.put("Authorization", "APPCODE " + api.getRunCode());
             log.info("当前参数 host:{} path:{} method:{} headerMap:{} queryMap:{}", api.getHost(), api.getPath()
                     , api.getMethod(), headerMap, queryMap);
-            HttpResponse response = HttpUtils.doGet(api.getHost(), api.getPath(), api.getMethod(), headerMap, queryMap);
+            HttpResponse response = null;
+            if ("GET".equalsIgnoreCase(api.getMethod())) {
+                log.info(" -> GET 请求");
+                response = HttpUtils.doGet(api.getHost(), api.getPath(), api.getMethod(), headerMap, queryMap);
+            } else if ("POST".equalsIgnoreCase(api.getMethod())) {
+                log.info(" -> POST 请求");
+                String responseStr = HttpUtils
+                        .httpURLConnection(api.getHost(), api.getPath(), api.getMethod(), api.getRunCode(), queryMap);
+                return responseStr;
+            }
             log.info("{}", response);
-            return EntityUtils.toString(response.getEntity());
+            StatusLine statusLine = response.getStatusLine();
+            int httpCode = statusLine.getStatusCode();
+            if (httpCode == 200) {
+                return EntityUtils.toString(response.getEntity());
+            } else {
+                return parseHeaders(response);
+            }
         } catch (Exception e) {
             log.error("调用接口失败 ,{}", e.getMessage());
             e.printStackTrace();
@@ -327,6 +345,34 @@ public class Tools {
             log.error("解析接口失败 ,异常:{} ,参数:{}", e.getMessage(), json);
             return new JSONArray();
         }
+    }
+
+    /**
+     * 解析ALI 返回非200的异常Header
+     *
+     * @param response
+     * @return
+     */
+    public static String parseHeaders(HttpResponse response) {
+        Header header = response.getFirstHeader("X-Ca-Error-Message");
+        String msg = "";
+        if (header != null) {
+            String error = header.getValue();
+            if (error.equals("Invalid AppCode")) {
+                msg = "AppCode错误 ";
+            } else if (error.equals("Invalid Url")) {
+                msg = "请求的 Method、Path 或者环境错误";
+            } else if (error.equals("Invalid Param Location")) {
+                msg = "参数错误";
+            } else if (error.equals("Unauthorized")) {
+                msg = "服务未被授权（或URL和Path不正确）";
+            } else if (error.equals("Quota Exhausted")) {
+                msg = "套餐包次数用完";
+            } else {
+                msg = "参数名错误 或 其他错误";
+            }
+        }
+        return msg;
     }
 
 
