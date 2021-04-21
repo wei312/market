@@ -36,7 +36,8 @@ public class Tools {
 
 
     public static void main(String[] args) {
-        System.out.println(Tools.getUUID());
+
+        System.out.println("aliyun".equalsIgnoreCase("aliyun"));
     }
 
     /**
@@ -197,12 +198,20 @@ public class Tools {
                 String responseStr = HttpUtils
                         .httpURLConnection(api.getHost(), api.getPath(), api.getMethod(), api.getRunCode(), queryMap);
                 return responseStr;
+            } else if ("ANY".equalsIgnoreCase(api.getMethod())) {
+                log.info(" -> ANY 请求(用GET方式)");
+                response = HttpUtils.doGet(api.getHost(), api.getPath(), api.getMethod(), headerMap, queryMap);
             }
             log.info("{}", response);
             StatusLine statusLine = response.getStatusLine();
             int httpCode = statusLine.getStatusCode();
             if (httpCode == 200) {
-                return EntityUtils.toString(response.getEntity());
+                String responseString = EntityUtils.toString(response.getEntity());
+                if (StringUtils.isNotEmpty(responseString)) {
+                    return responseString;
+                } else {
+                    return parseHeaders(response);
+                }
             } else {
                 return parseHeaders(response);
             }

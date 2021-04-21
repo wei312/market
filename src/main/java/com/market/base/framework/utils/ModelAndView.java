@@ -43,7 +43,7 @@ public class ModelAndView {
      * @return
      */
     public static ModelAndView success(String msg) {
-        return new ModelAndView(200, msg, "");
+        return new ModelAndView(200, msg, new JSONArray());
     }
 
     /**
