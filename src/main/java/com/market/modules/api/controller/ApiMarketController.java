@@ -124,16 +124,18 @@ public class ApiMarketController extends SuperController {
                         // 调用ALI市场接口
                         log.info(" ----- 调用ALI接口 ------");
                         responseString = Tools.sendHttpConnection(api, queryMap);
+                        log.info("调用返回结果,  {}", responseString);
+                        if (responseString.startsWith("{")) {
+                            JSONArray jsonArray = Tools.parseJson(responseString);
+                            return ModelAndView.successData(jsonArray).toJson();
+                        } else {
+                            return ModelAndView.success(responseString).toJson();
+                        }
                     } else {
                         log.info(" ----- 没有调用到接口 ------");
+                        return ModelAndView.success("").toJson();
                     }
-                    log.info("调用返回结果,  {}", responseString);
-                    if (responseString.startsWith("{")) {
-                        JSONArray jsonArray = Tools.parseJson(responseString);
-                        return ModelAndView.successData(jsonArray).toJson();
-                    } else {
-                        return ModelAndView.success(responseString).toJson();
-                    }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     return ModelAndView.successData(new Object()).toJson();
