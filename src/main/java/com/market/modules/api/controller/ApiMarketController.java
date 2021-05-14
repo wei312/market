@@ -1,6 +1,5 @@
 package com.market.modules.api.controller;
 
-import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -14,6 +13,7 @@ import com.market.base.framework.utils.Tools;
 import com.market.modules.api.model.dto.ApiDTO;
 import com.market.modules.api.model.entity.Api;
 import com.market.modules.api.model.param.ApiInsertParam;
+import com.market.modules.api.model.param.ApiUpdateParam;
 import com.market.modules.api.model.param.ApiUpdateStatusParam;
 import com.market.modules.api.service.ApiMarketService;
 import com.market.modules.apicode.model.entity.ApiCode;
@@ -25,7 +25,7 @@ import com.market.modules.user.service.UserPermissionsService;
 import io.swagger.annotations.ApiOperation;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +65,7 @@ public class ApiMarketController extends SuperController {
     @ApiOperation("API请求市场返回结果(调用外部接口)")
     @RequestMapping(value = "/{value}")
     public String getApi(@PathVariable("value") String value) {
+        // 多线程处理
         String userName = Tools.getParameter("userName");
         if (StringUtils.isEmpty(userName)) {
             return ModelAndView.error(410, "用户不能为空.").toJson();
@@ -101,33 +102,46 @@ public class ApiMarketController extends SuperController {
             if (apiCode == null) {
                 return ModelAndView.success(200, "API请求次数已用完,请重新获取").toJson();
             } else {
-                // 设置到API调用时RUNCODE
-                api.setRunCode(apiCode.getApiCode());
-                // 获取请求参数集合
-                List<ApiParam> apiParamList = apiParamService
-                        .list(new QueryWrapper<ApiParam>().lambda().eq(ApiParam::getApiId, api.getId()));
-                log.info(" apiParamList ,{} ", apiParamList);
-                // 校验是否必输,是否有传值
-                String parseValue = Tools.parseParameters(apiParamList);
-                log.info(" parseValue ,{}", parseValue);
-                // 校验结果不为空,则返回校验结果
-                if (StringUtils.isNotEmpty(parseValue)) {
-                    return parseValue;
-                }
-                // 组装请求参数,封装到MAP中
-                Map<String, String> queryMap = Tools.getParameters(apiParamList);
+                // 请求前处理
                 try {
+                    // 请求中
+                    // 获取请求参数集合
+                    List<ApiParam> apiParamList = apiParamService
+                            .list(new QueryWrapper<ApiParam>().lambda().eq(ApiParam::getApiId, api.getId()));
+                    log.info(" apiParamList ,{} ", apiParamList);
+                    // 校验是否必输,是否有传值
+                    String parseValue = Tools.parseParameters(apiParamList);
+                    log.info(" parseValue ,{}", parseValue);
+                    // 校验结果不为空,则返回校验结果
+                    if (StringUtils.isNotEmpty(parseValue)) {
+                        return parseValue;
+                    }
                     // 根据源系统类型调用市场接口,返回结果进行解析,解析后封装
                     String sourceType = api.getSourceType();
                     String responseString = "";
                     if ("aliyun".equalsIgnoreCase(sourceType)) {
+                        // 设置到API调用时RUNCODE
+                        api.setRunCode(apiCode.getApiCode());
+
                         // 调用ALI市场接口
                         log.info(" ----- 调用ALI接口 ------");
-                        responseString = Tools.sendHttpConnection(api, queryMap);
+                        responseString = Tools.sendHttpConnection(api, apiParamList);
                         log.info("调用返回结果,  {}", responseString);
                         if (responseString.startsWith("{")) {
-                            JSONArray jsonArray = Tools.parseJson(responseString);
-                            return ModelAndView.successData(jsonArray).toJson();
+                            return ModelAndView.successData(Tools.parseDocument(responseString, api.getJsonKeys()))
+                                    .toJson();
+                        } else {
+                            return ModelAndView.success(responseString).toJson();
+                        }
+                        // 请求后
+                    } else if ("7moor".equalsIgnoreCase(sourceType)) {
+                        // 调用7moorr接口
+
+                        log.info("--调用7moor接口-------");
+                        responseString = Tools.send7MHttpConnection(api, apiParamList);
+                        if (responseString.startsWith("{")) {
+                            return ModelAndView.successData(Tools.parseDocument(responseString, api.getJsonKeys()))
+                                    .toJson();
                         } else {
                             return ModelAndView.success(responseString).toJson();
                         }
@@ -141,7 +155,9 @@ public class ApiMarketController extends SuperController {
                     return ModelAndView.successData(new Object()).toJson();
                 }
             }
+
         }
+
     }
 
     @ApiOperation("API服务列表含请求参数等")
@@ -158,18 +174,29 @@ public class ApiMarketController extends SuperController {
         apiQueryWrapper.orderByDesc(true, Api::getCreateTime);
 
         apiIPage = apiMarketService.selectPage(page, apiQueryWrapper);
+
         log.info("API服务列表 -> API IPage -{}", apiIPage.getTotal());
         if (apiIPage != null && apiIPage.getRecords().size() > 0) {
             List<Api> apiList = apiIPage.getRecords();
             List<ApiDTO> apiDTOList = new ArrayList<>();
+            List<String> apiIds = new ArrayList<>();
+            for (Api api : apiList) {
+                apiIds.add(api.getId());
+            }
+            // 查询API请求参数
+            List<ApiParam> apiParamList = apiParamService
+                    .list(new QueryWrapper<ApiParam>().lambda().in(ApiParam::getApiId, apiIds));
             // 查询API请求参数,用户权限,拼成LIST,封装到ApiDTO实体中
             apiList.stream().forEach(api -> {
                 ApiDTO apiDTO = new ApiDTO();
                 BeanUtils.copyProperties(api, apiDTO);
-                // 查询API请求参数
-                List<ApiParam> apiParamList = apiParamService
-                        .list(new QueryWrapper<ApiParam>().lambda().eq(ApiParam::getApiId, api.getId()));
-                apiDTO.setApiParamList(apiParamList);
+                List<ApiParam> apiParamLists = new ArrayList<>();
+                apiParamList.stream().forEach(apiParam -> {
+                    if (apiParam.getApiId().equals(api.getId())) {
+                        apiParamLists.add(apiParam);
+                    }
+                });
+                apiDTO.setApiParamList(apiParamLists);
                 // 查询用户权限()
                 UserPermissions userPermissions = userPermissionsService
                         .getOne(new QueryWrapper<UserPermissions>().lambda()
@@ -237,6 +264,38 @@ public class ApiMarketController extends SuperController {
             }
         }
         return ModelAndView.success(200, "新增成功").toJson();
+    }
+
+    @ApiOperation("API新增")
+    @PostMapping("update")
+    @Transactional
+    public String updateApi(@RequestBody ApiUpdateParam apiUpdateParam) throws Exception {
+
+        // 按API行业分类与服务名校验是否存在
+        Api api = new Api();
+        BeanUtils.copyProperties(apiUpdateParam, api);
+        boolean apiB = apiMarketService.updateById(api);
+        if (!apiB) {
+            return ModelAndView.error(414, "Api更新失败.").toJson();
+        }
+        ApiCode apiCode = apiCodeService
+                .getOne(new QueryWrapper<ApiCode>().lambda().eq(ApiCode::getApiId, api.getId()));
+        if (!Objects.equals(apiUpdateParam.getCode(), apiCode.getApiCode())) {
+            apiCode.setApiCode(apiUpdateParam.getCode());
+            apiCode.setUpdateTime(Tools.now());
+            apiCodeService.updateById(apiCode);
+        }
+        apiParamService
+                .remove(new QueryWrapper<ApiParam>().lambda().eq(ApiParam::getApiId, apiUpdateParam.getId()));
+        List<ApiParam> apiParams = apiUpdateParam.getApiParams();
+        for (ApiParam apiParam : apiParams) {
+            apiParam.setApiId(api.getId());
+            apiParam.setId(Tools.getUUID());
+            apiParam.setCreateTime(Tools.now());
+            apiParam.setUpdateTime(Tools.now());
+            boolean apiParamB = apiParamService.save(apiParam);
+        }
+        return ModelAndView.success(200, "更新成功").toJson();
     }
 
     @ApiOperation("授权界面删除API,同时删除用户权限表,APICODE码表,请求参数表.")

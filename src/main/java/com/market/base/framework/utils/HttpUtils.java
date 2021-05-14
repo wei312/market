@@ -112,6 +112,51 @@ public class HttpUtils {
         return httpClient.execute(request);
     }
 
+
+    /**
+     * post form
+     *
+     * @param host
+     * @param path
+     * @param method
+     * @param headers
+     * @param querys
+     * @param bodys
+     * @return
+     * @throws Exception
+     */
+    public static HttpResponse doPost2(String host, String path, String method,
+            Map<String, String> headers,
+            Map<String, String> querys,
+            Map<String, String> bodys)
+            throws Exception {
+        HttpClient httpClient = wrapClient(host);
+        HttpPost request = new HttpPost(buildUrl(host, path, querys));
+        for (Map.Entry<String, String> e : headers.entrySet()) {
+            request.addHeader(e.getKey(), e.getValue());
+        }
+        if (bodys != null) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("{");
+            int i = 0;
+            for (String key : bodys.keySet()) {
+                if (i == 0) {
+                    i = 1;
+                } else {
+                    stringBuilder.append(",");
+                }
+                stringBuilder.append("\"").append(key).append("\"").append(":")
+                        .append("\"").append(bodys.get(key)).append("\"");
+            }
+            stringBuilder.append("}");
+
+            //根据需要发送的数据做相应替换
+            StringEntity requestEntity = new StringEntity(stringBuilder.toString(), "utf-8");
+            request.setEntity(requestEntity);
+        }
+        return httpClient.execute(request);
+    }
+
     /**
      * Post String
      *

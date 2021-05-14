@@ -81,18 +81,31 @@ public class UserPermissionsController extends SuperController {
             List<Api> apiList = apiIPage.getRecords();
             List<ApiUserPerDTO> apiUserPerDTOList = new ArrayList<>();
             // 再按API列表中的信息查询用户权限列表,API请求参数,并拼接到ApiUserPerDTO中
+            // 查询用户权限列表
+            List<UserPermissions> userPermissionsNewList = userPermissionsService
+                    .list(new QueryWrapper<UserPermissions>().lambda().in(UserPermissions::getApiId, apiIds)
+                            .and(e -> e.eq(UserPermissions::getUsername, userName)));
+            // 查询API请求参数
+            List<ApiParam> apiParamList = apiParamService
+                    .list(new QueryWrapper<ApiParam>().lambda().in(ApiParam::getApiId, apiIds));
+
             apiList.stream().forEach(api -> {
                 ApiUserPerDTO apiUserPerDTO = new ApiUserPerDTO();
                 BeanUtils.copyProperties(api, apiUserPerDTO);
-                // 查询用户权限列表
-                List<UserPermissions> userPermissionsNewList = userPermissionsService
-                        .list(new QueryWrapper<UserPermissions>().lambda().eq(UserPermissions::getApiId, api.getId())
-                                .and(e -> e.eq(UserPermissions::getUsername, userName)));
-                apiUserPerDTO.setUserPermissionsList(userPermissionsNewList);
-                // 查询API请求参数
-                List<ApiParam> apiParamList = apiParamService
-                        .list(new QueryWrapper<ApiParam>().lambda().eq(ApiParam::getApiId, api.getId()));
-                apiUserPerDTO.setApiParamList(apiParamList);
+                List<ApiParam> apiParamLists = new ArrayList<>();
+                apiParamList.stream().forEach(apiParam -> {
+                    if (apiParam.getApiId().equals(api.getId())) {
+                        apiParamLists.add(apiParam);
+                    }
+                });
+                List<UserPermissions> userPermissionsNewLists = new ArrayList<>();
+                userPermissionsNewList.stream().forEach(userPermissions -> {
+                    if (userPermissions.getApiId().equals(api.getId())) {
+                        userPermissionsNewLists.add(userPermissions);
+                    }
+                });
+                apiUserPerDTO.setUserPermissionsList(userPermissionsNewLists);
+                apiUserPerDTO.setApiParamList(apiParamLists);
                 apiUserPerDTOList.add(apiUserPerDTO);
             });
             // 循环设置API的URL地址,用于前端测试或展示
@@ -196,18 +209,32 @@ public class UserPermissionsController extends SuperController {
             List<Api> apiList = apiIPage.getRecords();
             List<ApiUserPerDTO> apiUserPerDTOList = new ArrayList<>();
             // 再按API列表中的信息查询用户权限列表,API请求参数,并拼接到ApiUserPerDTO中
+            // 查询用户权限列表
+            List<UserPermissions> userPermissionsNewList = userPermissionsService
+                    .list(new QueryWrapper<UserPermissions>().lambda().in(UserPermissions::getApiId, apiIds)
+                            .and(e -> e.eq(UserPermissions::getStatus, "0")));
+            // 查询API请求参数
+            List<ApiParam> apiParamList = apiParamService
+                    .list(new QueryWrapper<ApiParam>().lambda().in(ApiParam::getApiId, apiIds));
+
             apiList.stream().forEach(api -> {
                 ApiUserPerDTO apiUserPerDTO = new ApiUserPerDTO();
                 BeanUtils.copyProperties(api, apiUserPerDTO);
                 // 查询用户权限列表
-                List<UserPermissions> userPermissionsNewList = userPermissionsService
-                        .list(new QueryWrapper<UserPermissions>().lambda().eq(UserPermissions::getApiId, api.getId())
-                                .and(e -> e.eq(UserPermissions::getStatus, "0")));
-                apiUserPerDTO.setUserPermissionsList(userPermissionsNewList);
-                // 查询API请求参数
-                List<ApiParam> apiParamList = apiParamService
-                        .list(new QueryWrapper<ApiParam>().lambda().eq(ApiParam::getApiId, api.getId()));
-                apiUserPerDTO.setApiParamList(apiParamList);
+                List<ApiParam> apiParamLists = new ArrayList<>();
+                apiParamList.stream().forEach(apiParam -> {
+                    if (apiParam.getApiId().equals(api.getId())) {
+                        apiParamLists.add(apiParam);
+                    }
+                });
+                List<UserPermissions> userPermissionsNewLists = new ArrayList<>();
+                userPermissionsNewList.stream().forEach(userPermissions -> {
+                    if (userPermissions.getApiId().equals(api.getId())) {
+                        userPermissionsNewLists.add(userPermissions);
+                    }
+                });
+                apiUserPerDTO.setUserPermissionsList(userPermissionsNewLists);
+                apiUserPerDTO.setApiParamList(apiParamLists);
                 apiUserPerDTOList.add(apiUserPerDTO);
             });
             // 循环设置API的URL地址,用于前端测试或展示

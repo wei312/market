@@ -37,6 +37,12 @@ public class Api extends BaseModel {
     private String sourceType;
 
     /**
+     * 解析返回结果JSON格式的KEYS
+     */
+    @ApiModelProperty(value = "解析返回结果JSON格式的KEYS")
+    private String jsonKeys;
+
+    /**
      * API名称
      */
     @ApiModelProperty(value = "API名称")
